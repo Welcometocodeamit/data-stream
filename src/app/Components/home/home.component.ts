@@ -4,8 +4,8 @@ import ChartStreaming from 'chartjs-plugin-streaming';
 import { DateTime } from 'luxon';
 import 'chartjs-adapter-luxon';
 import { HttpService } from 'src/app/Service/http.service';
-// import zoomPlugin from 'chartjs-plugin-zoom';
-Chart.register(...registerables, ChartStreaming);
+import zoomPlugin from 'chartjs-plugin-zoom';
+Chart.register(...registerables, ChartStreaming, zoomPlugin);
 
 @Component({
   selector: 'app-home',
@@ -30,6 +30,7 @@ export class HomeComponent {
     data: [],
     backgroundColor: 'rgba(75, 192, 192, 0.2)',
     borderColor: 'rgba(75, 192, 192, 1)',
+
     tension: 0.2
   }]
 
@@ -38,7 +39,21 @@ export class HomeComponent {
     data: [],
     backgroundColor: 'rgba(75, 192, 192, 0.2)',
     borderColor: 'rgba(75, 192, 192, 1)',
+    pointStyle: 'circle',
+    pointRadius: 2,
+    pointHoverRadius: 25,
     tension: 0.2
+  },
+  {
+    label: 'Price in $',
+    data: [],
+    backgroundColor: 'rgba(71, 119, 152, 0.2)',
+    borderColor: 'rgba(71, 180, 179, 0.2))',
+    pointStyle: 'circle',
+    pointRadius: 0,
+    pointHoverRadius: 25,
+    tension: 0.5,
+    // stepped:true
   }]
 
 
@@ -92,6 +107,12 @@ export class HomeComponent {
         datasets: this.dataset
       },
       options: {
+        plugins: {
+          streaming: {
+            duration: 1000 * 10,
+            refresh: 1000 * 3
+          }
+        },
         scales: {
           x: {
             type: 'realtime',
@@ -107,17 +128,29 @@ export class HomeComponent {
                   y: this.price
                 });
 
+                this.chart2.data.datasets[1].data.push({
+                  x: this.date,
+                  y: this.price
+                });
+
                 this.chart2.data.labels.push(this.date)
+
 
                 this.chart2.update()
               },
-              delay: 2000
+              delay: 0,
+              duration: 1000 * 100
             },
 
           },
-        }
+        },
+        
       }
     });
+  }
+
+  resetZoom() {
+    this.chart2.resetZoom()
   }
 
   RenderChart2(): void {
@@ -140,7 +173,36 @@ export class HomeComponent {
               display: false
             }
           }
-        }
+        },
+        plugins: {
+          zoom: {
+            zoom: {
+              wheel: {
+                enabled: true,
+                speed: 0.04,
+                modifierKey: 'ctrl'
+              },
+              pinch: {
+                enabled: true
+              },
+              mode: 'x',
+              drag: {
+                enabled: true
+              }
+            },
+            pan: {
+              enabled: false
+            }
+          }
+        },
+        // transitions: {
+        //   zoom: {
+        //     animation: {
+        //       duration: 1000,
+        //       easing: 'easeOutCubic'
+        //     }
+        //   }
+        // }
       }
     });
   }
